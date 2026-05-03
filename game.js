@@ -563,7 +563,7 @@
             Math.floor(progress * SHIP_DEATH_NUM_FRAMES)
         );
         var sheet = sprites["ship_death_sheet.png"];
-        var alpha = Math.max(0, ship.deathTimer / (SHIP_DEATH_DURATION / SHIP_DEATH_ANIM_SPEED));
+        var alpha = 1 - frameIdx / SHIP_DEATH_NUM_FRAMES;
         ctx.globalAlpha = alpha;
         ctx.drawImage(
             sheet,

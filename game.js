@@ -56,6 +56,8 @@
 
     var SHIP_DEATH_FRAME_SIZE = 64;
     var SHIP_DEATH_NUM_FRAMES = 4;
+    var SHIP_DEATH_DURATION = 2.0;
+    var SHIP_DEATH_ANIM_SPEED = 2;
 
     var keys = {};
     var score = 0;
@@ -304,6 +306,7 @@
         explosions.push({
             x: x,
             y: y,
+            size: size,
             timer: 0,
             duration: EXPLOSION_DURATION,
         });
@@ -340,9 +343,8 @@
 
     function shipDeath() {
         playSound("death");
-        spawnExplosion(ship.x, ship.y, 30);
         ship.dead = true;
-        ship.deathTimer = 2.0;
+        ship.deathTimer = SHIP_DEATH_DURATION;
     }
 
     function respawnShip() {
@@ -483,7 +485,7 @@
                         playSound("explosion_large");
                     }
 
-                    spawnExplosion(a.x, a.y, a.radius);
+                    spawnExplosion(a.x, a.y, ASTEROID_SIZES[a.sizeType].canvasSize);
 
                     if (info.nextSize) {
                         for (var s = 0; s < 2; s++) {
@@ -554,13 +556,14 @@
 
     function drawShipDeath() {
         if (!ship || !ship.dead) return;
-        var progress = 1 - ship.deathTimer / 2.0;
+        var rawProgress = 1 - ship.deathTimer / SHIP_DEATH_DURATION;
+        var progress = Math.min(1, rawProgress * SHIP_DEATH_ANIM_SPEED);
         var frameIdx = Math.min(
             SHIP_DEATH_NUM_FRAMES - 1,
             Math.floor(progress * SHIP_DEATH_NUM_FRAMES)
         );
         var sheet = sprites["ship_death_sheet.png"];
-        var alpha = ship.deathTimer / 2.0;
+        var alpha = Math.max(0, ship.deathTimer / (SHIP_DEATH_DURATION / SHIP_DEATH_ANIM_SPEED));
         ctx.globalAlpha = alpha;
         ctx.drawImage(
             sheet,
@@ -613,15 +616,16 @@
                 EXPLOSION_NUM_FRAMES - 1,
                 Math.floor(progress * EXPLOSION_NUM_FRAMES)
             );
+            var drawSize = e.size;
             ctx.globalAlpha = 1 - progress * 0.6;
             ctx.drawImage(
                 sheet,
                 frameIdx * EXPLOSION_FRAME_SIZE, 0,
                 EXPLOSION_FRAME_SIZE, EXPLOSION_FRAME_SIZE,
-                e.x - EXPLOSION_FRAME_SIZE / 2,
-                e.y - EXPLOSION_FRAME_SIZE / 2,
-                EXPLOSION_FRAME_SIZE,
-                EXPLOSION_FRAME_SIZE
+                e.x - drawSize / 2,
+                e.y - drawSize / 2,
+                drawSize,
+                drawSize
             );
         }
         ctx.globalAlpha = 1;
